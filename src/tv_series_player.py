@@ -75,6 +75,12 @@ class tv_series_player(basic_media_player):
             file.write(json.dumps({'name': name, 'season': season, 'ep': ep}))
         pass
 
+    def _is_media_file_filter(path):
+        if path.endswith('.mp4') or path.endswith('.mkv') or path.endswith(
+                '.rmvb') or path.endswith('.rm'):
+            return True
+        return False
+
     def startup(self):
 
         # 获取上次播放的电视剧目录与集数
@@ -92,7 +98,9 @@ class tv_series_player(basic_media_player):
             season_dir = os.path.join(self.root, name)
             count_of_season = len(os.listdir(season_dir))
             ep_dir = os.path.join(season_dir, str(season))
-            eps = os.listdir(ep_dir)
+            eps = list(
+                filter(tv_series_player._is_media_file_filter,
+                       os.listdir(ep_dir)))
             logger.log_debug(f'eps: {eps}')
             count_of_ep = len(eps)
             logger.log_debug(f'count_of_season: {count_of_season}')
