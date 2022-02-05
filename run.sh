@@ -1,0 +1,2 @@
+#!/bin/bash
+docker run --restart unless-stopped --name=rtmp-live --dns 202.96.128.86 -e TZ=Asia/Shanghai -v /home/pi/public/电视剧:/movies -v /home/pi/docker/rtmp-live/data:/data -v /home/pi/docker/rtmp-live/logs:/logs -d rtmp-live

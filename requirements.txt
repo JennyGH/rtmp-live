@@ -1,0 +1,7 @@
+requests
+requests[socks]
+ffmpy3
+ffmpeg-python
+brotli
+websockets
+websocket-client
