@@ -93,6 +93,7 @@ class tv_series_player(basic_media_player):
             count_of_season = len(os.listdir(season_dir))
             ep_dir = os.path.join(season_dir, str(season))
             eps = os.listdir(ep_dir)
+            logger.log_debug(f'eps: {eps}')
             count_of_ep = len(eps)
             logger.log_debug(f'count_of_season: {count_of_season}')
             logger.log_debug(f'count_of_ep: {count_of_ep}')
