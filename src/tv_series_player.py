@@ -9,6 +9,7 @@ import ffmpy3
 import ffmpeg
 import requests
 import platform
+import last_play_record_manager
 
 import logger
 from basic_media_player import basic_media_player
@@ -17,18 +18,6 @@ from basic_media_player import basic_media_player
 class tv_series_player(basic_media_player):
     def __init__(self, root, rtmp_url) -> None:
         super().__init__(root, rtmp_url)
-
-        if platform.system() == 'Windows':
-            self.data_root_dir = r'.\data'
-        else:
-            self.data_root_dir = '/data'
-
-        if not os.path.exists(self.data_root_dir):
-            os.makedirs(self.data_root_dir)
-        pass
-
-    def _get_last_played_record_file_name(self):
-        return 'last_played.json'
 
     def _get_supportted_series(self):
         res = []
@@ -53,28 +42,6 @@ class tv_series_player(basic_media_player):
                 break
         return current_tv_name
 
-    def _get_last_play_record(self):
-        line = ''
-        path = os.path.join(self.data_root_dir,
-                            self._get_last_played_record_file_name())
-        if not os.path.exists(path) or not os.path.isfile(path):
-            return ('', 0, 0)
-        with open(path, mode='r', encoding='utf-8') as file:
-            line = file.readline()
-        if '' == line:
-            return ('', 0, 0)
-        obj = json.loads(line)
-        return obj['name'], obj['season'], obj['ep']
-
-    def _set_last_play_record(self, name, season, ep):
-        if name == '' or 0 == season or 0 == ep:
-            return
-        path = os.path.join(self.data_root_dir,
-                            self._get_last_played_record_file_name())
-        with open(path, mode='w', encoding='utf-8') as file:
-            file.write(json.dumps({'name': name, 'season': season, 'ep': ep}))
-        pass
-
     def _is_media_file_filter(path):
         if path.endswith('.mp4') or path.endswith('.mkv') or path.endswith(
                 '.rmvb') or path.endswith('.rm'):
@@ -84,7 +51,7 @@ class tv_series_player(basic_media_player):
     def startup(self):
 
         # 获取上次播放的电视剧目录与集数
-        name, season, ep = self._get_last_play_record()
+        name, season, ep, ss = last_play_record_manager.get_record()
 
         while True:
             # 如果为空
@@ -110,12 +77,15 @@ class tv_series_player(basic_media_player):
                 ep_file = eps[0]
                 suffix = ep_file.split('.')[1]
                 for e in range(ep, count_of_ep + 1):
-                    media_path = os.path.join(self.root, name, str(s),
+                    # current_season = '%s.S%02d' % (name, s)
+                    current_season = '%d' % s
+                    media_path = os.path.join(self.root, name, current_season,
                                               '%02d.%s' % (e, suffix))
                     logger.log_debug(f'media_path: {media_path}')
-                    self._set_last_play_record(name, s, e)
+                    last_play_record_manager.set_record(name, s, e, ss)
                     # self._play(media_path, '%s S%02d E%02d' % (name, s, e))
                     self._play(media_path)
+                    ss = '00:00:00'
 
             name = self._select_tv_randomly(name)
             season = 1

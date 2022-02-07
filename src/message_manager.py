@@ -51,6 +51,14 @@ headers = {
 }
 
 
+def _log_debug(content):
+    logger.log_debug(content=content, prefix='message_manager-')
+
+
+def _log_error(content):
+    logger.log_error(content=content, prefix='message_manager-')
+
+
 def _unsigned_integer_to_bytes(integer, size):
     return integer.to_bytes(size, byteorder='big', signed=False)
 
@@ -130,31 +138,31 @@ class live_message_manager(object):
         else:
             return None
 
-        logger.log_debug(
+        _log_debug(
             f'message_size: {package_length - header_length}, version: {version}, type: {type}, message: {message}'
         )
 
         return message
 
     def _user_entered(self, uname):
-        logger.log_debug(f'[USER_IN] 欢迎 {uname} 进入直播间！')
+        _log_debug(f'[USER_IN] 欢迎 {uname} 进入直播间！')
         pass
 
     def _danmu_message(self, message):
-        logger.log_debug(f'[DANMU_MSG] 弹幕消息：{message}')
+        _log_debug(f'[DANMU_MSG] 弹幕消息：{message}')
         pass
 
     def _send_gift(self, uname, action, gift_name, gift_count):
         message = f'感谢{uname}{action}{gift_name}x{gift_count}'
-        logger.log_debug(f'[SEND_GIFT] {message}')
+        _log_debug(f'[SEND_GIFT] {message}')
         bilibili_http_api.send_danmu_message(self.room_id, message)
         pass
 
     def _system_message(self, data):
-        logger.log_debug(f'[SYS_MSG] {data}')
+        _log_debug(f'[SYS_MSG] {data}')
 
     def _on_connect(self, base):
-        logger.log_debug('On websocket connected.')
+        _log_debug('On websocket connected.')
 
         request_json = {
             "uid": self.uid,
@@ -173,21 +181,20 @@ class live_message_manager(object):
             self.heart_beat_thread = threading.Thread(target=self._run)
             self.heart_beat_thread.start()
         except Exception as ex:
-            logger.log_error(
-                f'Unable to send connect message to {self.url}, {ex}')
+            _log_error(f'Unable to send connect message to {self.url}, {ex}')
         pass
 
     def _on_message(self, base, message_bytes):
-        logger.log_debug(f'On websocket message arrived.')
+        _log_debug(f'On websocket message arrived.')
         message = live_message_manager._decode_message(message_bytes)
         if None != message:
             if 'cmd' not in message:
-                logger.log_error('No `cmd` in message.')
+                _log_error('No `cmd` in message.')
                 return
             cmd = message['cmd']
 
             if 'data' not in message:
-                logger.log_error('No `data` in message.')
+                _log_error('No `data` in message.')
                 return
             data = message['data']
 
@@ -208,7 +215,7 @@ class live_message_manager(object):
         pass
 
     def _on_close(self, base, status_code, message):
-        logger.log_debug(
+        _log_debug(
             f'On websocket closed, status_code: {status_code}, message: {message}'
         )
         self.alive = False
@@ -218,15 +225,15 @@ class live_message_manager(object):
         pass
 
     def _on_error(self, base, ex):
-        logger.log_debug(f'On websocket error: {ex}.')
+        _log_debug(f'On websocket error: {ex}.')
         pass
 
     def _on_ping(self, base, message):
-        logger.log_debug(f'On websocket ping, message: {message}.')
+        _log_debug(f'On websocket ping, message: {message}.')
         pass
 
     def _on_pong(self, base, message):
-        logger.log_debug(f'On websocket pong, message: {message}.')
+        _log_debug(f'On websocket pong, message: {message}.')
         pass
 
     def _run(self):
