@@ -64,7 +64,9 @@ class tv_series_player(basic_media_player):
             # 获取总集数
             season_dir = os.path.join(self.root, name)
             count_of_season = len(os.listdir(season_dir))
-            ep_dir = os.path.join(season_dir, str(season))
+            ep_dir = os.path.join(season_dir, '%s.S%02d' % (name, season))
+            if not os.path.exists(ep_dir):
+                ep_dir = os.path.join(season_dir, '%d' % (season))
             eps = list(
                 filter(tv_series_player._is_media_file_filter,
                        os.listdir(ep_dir)))
