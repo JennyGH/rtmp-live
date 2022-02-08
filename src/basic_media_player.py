@@ -64,7 +64,7 @@ class basic_media_player(object):
                     self.rtmp_url:
                     fr"-c:a aac -c:v libx264 -b:v 3000k -f flv -vf drawtext=fontcolor=white:fontsize=20:bordercolor=black:borderw=2:text='{draw_text}':x=10:y=10"
                     if '' != draw_text else
-                    "-c:a aac -c:v copy -b:v 3000k -f flv -tune zerolatency -preset fast -max_muxing_queue_size 1024 -rw_timeout 300000"
+                    "-c:a aac -c:v copy -b:v 3000k -f flv -preset fast -max_muxing_queue_size 1024 -rw_timeout 300000"
                 })
             logger.log_debug(ff.cmd)
 
