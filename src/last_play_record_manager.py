@@ -75,10 +75,13 @@ def get_start_time():
         return ('00:00:00')
     obj = json.loads(line)
 
-    ss = ''
+    ss = '00:00:00'
 
     if 'ss' in obj:
         ss = obj['ss']
+
+    if '' == ss:
+        ss = '00:00:00'
 
     return ss
 

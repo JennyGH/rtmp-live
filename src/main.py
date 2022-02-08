@@ -16,7 +16,6 @@ import logger
 import live_checker
 import login_manager
 import config_manager
-import message_manager
 import bilibili_http_api
 from tv_series_player import tv_series_player
 
@@ -134,19 +133,8 @@ def _startup_movie_player(root_dir, rtmp_url):
             continue
 
 
-def _startup_tv_player(root_dir, rtmp_url):
-
-    # 获取最后一次播放的电视剧名称和集数
-
-    pass
-
-
 def _startup_live_checker():
     live_checker.startup()
-
-
-def _startup_message_manager():
-    message_manager.startup()
 
 
 if __name__ == "__main__":
@@ -162,11 +150,6 @@ if __name__ == "__main__":
         live_checker_thread = threading.Thread(target=_startup_live_checker)
         live_checker_thread.start()
         live_checker_thread.join(timeout=3)
-
-        # 启动弹幕服务
-        message_thread = threading.Thread(target=_startup_message_manager)
-        message_thread.start()
-        message_thread.join(timeout=3)
 
     player = tv_series_player(live_src, live_url)
     player.startup()

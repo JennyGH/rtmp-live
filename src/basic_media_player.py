@@ -10,6 +10,8 @@ import last_play_record_manager
 
 
 def _get_seconds_from_ss(val):
+    if '' == val:
+        return 0
     splited = val.split(':')
     h = int(splited[0], base=10)
     m = int(splited[1], base=10)
