@@ -77,10 +77,11 @@ class tv_series_player(basic_media_player):
                 ep_file = eps[0]
                 suffix = ep_file.split('.')[1]
                 for e in range(ep, count_of_ep + 1):
-                    current_season = '%s.S%02d' % (name, s)
-                    if not os.path.exists(current_season):
-                        current_season = '%d' % s
-                    media_path = os.path.join(self.root, name, current_season,
+                    season_dir = os.path.join(self.root, name,
+                                              '%s.S%02d' % (name, s))
+                    if not os.path.exists(season_dir):
+                        season_dir = os.path.join(self.root, name, '%d' % s)
+                    media_path = os.path.join(season_dir,
                                               '%02d.%s' % (e, suffix))
                     logger.log_debug(f'media_path: {media_path}')
                     last_play_record_manager.set_record(name, s, e, ss)
