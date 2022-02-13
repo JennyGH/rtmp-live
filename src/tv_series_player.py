@@ -9,10 +9,25 @@ import ffmpy3
 import ffmpeg
 import requests
 import platform
+import config_manager
 import last_play_record_manager
 
 import logger
 from basic_media_player import basic_media_player
+
+
+def _get_eps_dir(season_dir, tv_name, season):
+    ep_dir = os.path.join(season_dir, '%s.S%02d' % (tv_name, season))
+    if not os.path.exists(ep_dir):
+        ep_dir = os.path.join(season_dir, '%d' % (season))
+    return ep_dir
+
+
+def _is_media_file_filter(path):
+    if path.endswith('.mp4') or path.endswith('.mkv') or path.endswith(
+            '.rmvb') or path.endswith('.rm'):
+        return True
+    return False
 
 
 class tv_series_player(basic_media_player):
@@ -42,57 +57,52 @@ class tv_series_player(basic_media_player):
                 break
         return current_tv_name
 
-    def _is_media_file_filter(path):
-        if path.endswith('.mp4') or path.endswith('.mkv') or path.endswith(
-                '.rmvb') or path.endswith('.rm'):
-            return True
-        return False
-
     def startup(self):
 
         # 获取上次播放的电视剧目录与集数
-        name, season, ep, ss = last_play_record_manager.get_record()
+        name, start_season, start_ep, ss = last_play_record_manager.get_record(
+        )
 
         while True:
             # 如果为空
             if name == '':
                 # 随机选择一个电视剧
                 name = self._select_tv_randomly(name)
-                season = 1
-                ep = 1
+                start_season = 1
+                start_ep = 1
 
-            # 获取总集数
+            # 拼接季目录路径
             season_dir = os.path.join(self.root, name)
+            # 获取季数
             count_of_season = len(os.listdir(season_dir))
-            ep_dir = os.path.join(season_dir, '%s.S%02d' % (name, season))
-            if not os.path.exists(ep_dir):
-                ep_dir = os.path.join(season_dir, '%d' % (season))
-            eps = list(
-                filter(tv_series_player._is_media_file_filter,
-                       os.listdir(ep_dir)))
-            logger.log_debug(f'eps: {eps}')
-            count_of_ep = len(eps)
             logger.log_debug(f'count_of_season: {count_of_season}')
-            logger.log_debug(f'count_of_ep: {count_of_ep}')
 
-            for s in range(season, count_of_season + 1):
-                ep_file = eps[0]
-                suffix = ep_file.split('.')[1]
-                for e in range(ep, count_of_ep + 1):
-                    season_dir = os.path.join(self.root, name,
-                                              '%s.S%02d' % (name, s))
-                    if not os.path.exists(season_dir):
-                        season_dir = os.path.join(self.root, name, '%d' % s)
-                    media_path = os.path.join(season_dir,
-                                              '%02d.%s' % (e, suffix))
+            for season in range(start_season, count_of_season + 1):
+                # 拼接集目录
+                ep_dir = _get_eps_dir(season_dir=season_dir,
+                                      tv_name=name,
+                                      season=season)
+                # 获取所有媒体文件
+                eps = list(filter(_is_media_file_filter, os.listdir(ep_dir)))
+                logger.log_debug(f'eps: {eps}')
+                count_of_ep = len(eps)
+                logger.log_debug(f'count_of_ep: {count_of_ep}')
+                suffix = re.findall(r'.*\.(\w+)$', eps[0])[0]
+                # 播放当季所有剧集
+                for ep in range(start_ep, count_of_ep + 1):
+                    media_path = os.path.join(ep_dir, '%02d.%s' % (ep, suffix))
                     logger.log_debug(f'media_path: {media_path}')
-                    last_play_record_manager.set_record(name, s, e, ss)
-                    # self._play(media_path, '%s S%02d E%02d' % (name, s, e))
-                    self._play(media_path)
+                    last_play_record_manager.set_record(name, season, ep, ss)
+                    self._play(media_path,
+                               draw_text=('S%02d E%02d' % (season, ep))
+                               if config_manager.is_drawtext_enabled() else '')
                     ss = '00:00:00'
+                # 播完一季之后重置开始集数
+                start_ep = 1
+            # 播完所有季之后重置季数
+            start_season = 1
 
+            # 重新选取剧集
             name = self._select_tv_randomly(name)
-            season = 1
-            ep = 1
 
         pass

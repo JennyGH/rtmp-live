@@ -24,7 +24,7 @@ def get_live_time_range():
         if not os.path.exists(path):
             return (0, 0)
         json_string = ''
-        with open(path, mode='r', encoding='utf-8') as file:
+        with open(path, mode='rt', encoding='utf-8') as file:
             lines = file.readlines()
             for line in lines:
                 json_string += f'{line}\n'
@@ -64,7 +64,7 @@ def get_live_src():
         if not os.path.exists(path):
             return ''
         json_string = ''
-        with open(path, mode='r', encoding='utf-8') as file:
+        with open(path, mode='rt', encoding='utf-8') as file:
             lines = file.readlines()
             for line in lines:
                 json_string += f'{line}\n'
@@ -84,7 +84,7 @@ def get_live_url():
         if not os.path.exists(path):
             return ''
         json_string = ''
-        with open(path, mode='r', encoding='utf-8') as file:
+        with open(path, mode='rt', encoding='utf-8') as file:
             lines = file.readlines()
             for line in lines:
                 json_string += f'{line}\n'
@@ -96,3 +96,23 @@ def get_live_url():
     except Exception as ex:
         logger.log_error(f'Unable to get live url, {ex}')
         return ''
+
+
+def is_drawtext_enabled():
+    try:
+        path = _get_config_file_name()
+        if not os.path.exists(path):
+            return False
+        json_string = ''
+        with open(path, mode='rt', encoding='utf-8') as file:
+            lines = file.readlines()
+            for line in lines:
+                json_string += f'{line}\n'
+        obj = json.loads(json_string)
+        if 'drawtext' not in obj:
+            return False
+        drawtext = obj['drawtext']
+        return drawtext
+    except Exception as ex:
+        logger.log_error(f'Unable to get enable drawtext, {ex}')
+        return False
