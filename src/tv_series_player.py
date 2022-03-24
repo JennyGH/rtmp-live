@@ -90,7 +90,12 @@ class tv_series_player(basic_media_player):
                 suffix = re.findall(r'.*\.(\w+)$', eps[0])[0]
                 # 播放当季所有剧集
                 for ep in range(start_ep, count_of_ep + 1):
-                    media_path = os.path.join(ep_dir, '%02d.%s' % (ep, suffix))
+                    if count_of_ep >= 100:
+                        media_path = os.path.join(ep_dir, '%03d.%s' % (ep, suffix))
+                    elif count_of_ep >= 10:
+                        media_path = os.path.join(ep_dir, '%02d.%s' % (ep, suffix))
+                    elif count_of_ep >= 1:
+                        media_path = os.path.join(ep_dir, '%1d.%s' % (ep, suffix))
                     logger.log_debug(f'media_path: {media_path}')
                     last_play_record_manager.set_record(name, season, ep, ss)
                     self._play(media_path,
@@ -106,3 +111,15 @@ class tv_series_player(basic_media_player):
             name = self._select_tv_randomly(name)
 
         pass
+
+    def play(self):
+        file_names = os.listdir(self.root)
+        for file_name in file_names:
+            media_path = os.path.join(self.root, file_name)
+            self._play(media_path)
+
+
+if __name__ == '__main__':
+    tv_series_player(r"Z:\chinese-tv\法证先锋\法证先锋.S04",
+                     f"rtmp://192.168.3.179/live/livestream").play()
+    pass
