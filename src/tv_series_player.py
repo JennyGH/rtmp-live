@@ -123,8 +123,9 @@ class tv_series_player(basic_media_player):
                 logger.log_debug(f'count_of_ep: {count_of_ep}')
 
                 # 播放当季所有剧集
-                for ep in range(start_ep - 1, count_of_ep):
-                    play_item = play_list[ep]
+                for i in range(start_ep - 1, count_of_ep):
+                    ep = i + 1
+                    play_item = play_list[i]
                     media_path = os.path.join(ep_dir, play_item['filename'])
                     logger.log_debug(f'media_path: {media_path}')
                     last_play_record_manager.set_record(name, season, ep, ss)
