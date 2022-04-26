@@ -50,17 +50,23 @@ class basic_media_player(object):
         except:
             return False
 
-    def _play(self, in_path, draw_text=''):
+    def _play(self, in_path, play_option):
+        draw_text = play_option['draw_text']
         logger.log_debug(f'Play {in_path}')
         start_ticks = 0
         end_ticks = 0
         start_time = last_play_record_manager.get_start_time()
+        if '00:00:00' == start_time and '' != play_option['start_time']:
+            start_time = play_option['start_time']
         total_seconds = _get_seconds_from_ss(start_time)
+        end_time = play_option['end_time']
+        if '' != end_time:
+            end_time = f'-to {end_time}'
         while True:
             ss = "-ss " + start_time
             last_play_record_manager.set_start_time(start_time)
             ff = ffmpy3.FFmpeg(
-                global_options=["-re"],
+                global_options=["-re", end_time],
                 inputs={in_path: f"{ss}"},
                 outputs={
                     self.rtmp_url:

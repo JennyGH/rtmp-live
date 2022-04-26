@@ -30,6 +30,40 @@ def _is_media_file_filter(path):
     return False
 
 
+def _parse_play_list_item(str):
+    str = str.replace('\r', '').replace('\n', '')
+    splited = str.split(', ')
+    return {
+        'filename': splited[0],
+        'start_time': splited[1],
+        'end_time': splited[2]
+    }
+
+
+def _sort_by_filename(play_list_item):
+    return play_list_item['filename']
+
+
+def _get_play_list(ep_dir):
+    play_list_path = os.path.join(ep_dir, 'playlist.txt')
+    play_list = []
+    if os.path.exists(play_list_path):
+        with open(play_list_path, mode='r', encoding='utf-8') as file:
+            lines = file.readlines()
+            for line in lines:
+                play_list.append(_parse_play_list_item(line))
+    if len(play_list) == 0:
+        media_list = list(filter(_is_media_file_filter, os.listdir(ep_dir)))
+        for media_filename in media_list:
+            play_list.append({
+                'filename': media_filename,
+                'start_time': '',
+                'end_time': ''
+            })
+    play_list.sort(key=_sort_by_filename)
+    return play_list
+
+
 class tv_series_player(basic_media_player):
     def __init__(self, root, rtmp_url) -> None:
         super().__init__(root, rtmp_url)
@@ -79,28 +113,30 @@ class tv_series_player(basic_media_player):
 
             for season in range(start_season, count_of_season + 1):
                 # 拼接集目录
-                ep_dir = _get_eps_dir(season_dir=season_dir,
-                                      tv_name=name,
-                                      season=season)
-                # 获取所有媒体文件
-                eps = list(filter(_is_media_file_filter, os.listdir(ep_dir)))
-                logger.log_debug(f'eps: {eps}')
-                count_of_ep = len(eps)
+                ep_dir = _get_eps_dir(season_dir, name, season)
+                logger.log_debug(f'ep_dir: {ep_dir}')
+
+                play_list = _get_play_list(ep_dir)
+                logger.log_debug(f'eps: {play_list}')
+
+                count_of_ep = len(play_list)
                 logger.log_debug(f'count_of_ep: {count_of_ep}')
-                suffix = re.findall(r'.*\.(\w+)$', eps[0])[0]
+
                 # 播放当季所有剧集
-                for ep in range(start_ep, count_of_ep + 1):
-                    if count_of_ep >= 100:
-                        media_path = os.path.join(ep_dir, '%03d.%s' % (ep, suffix))
-                    elif count_of_ep >= 10:
-                        media_path = os.path.join(ep_dir, '%02d.%s' % (ep, suffix))
-                    elif count_of_ep >= 1:
-                        media_path = os.path.join(ep_dir, '%1d.%s' % (ep, suffix))
+                for ep in range(start_ep - 1, count_of_ep):
+                    play_item = play_list[ep]
+                    media_path = os.path.join(ep_dir, play_item['filename'])
                     logger.log_debug(f'media_path: {media_path}')
                     last_play_record_manager.set_record(name, season, ep, ss)
-                    self._play(media_path,
-                               draw_text=('S%02d E%02d' % (season, ep))
-                               if config_manager.is_drawtext_enabled() else '')
+                    play_option = {
+                        'draw_text': ('S%02d E%02d' % (season, ep))
+                        if config_manager.is_drawtext_enabled() else '',
+                        'start_time':
+                        play_item['start_time'],
+                        'end_time':
+                        play_item['end_time'],
+                    }
+                    self._play(media_path, play_option)
                     ss = '00:00:00'
                 # 播完一季之后重置开始集数
                 start_ep = 1
@@ -109,17 +145,10 @@ class tv_series_player(basic_media_player):
 
             # 重新选取剧集
             name = self._select_tv_randomly(name)
-
         pass
-
-    def play(self):
-        file_names = os.listdir(self.root)
-        for file_name in file_names:
-            media_path = os.path.join(self.root, file_name)
-            self._play(media_path)
 
 
 if __name__ == '__main__':
-    tv_series_player(r"Z:\chinese-tv\法证先锋\法证先锋.S04",
-                     f"rtmp://192.168.3.179/live/livestream").play()
+    tv_series_player(r"Z:\chinese-tv",
+                     f"rtmp://192.168.3.179/live/livestream").startup()
     pass

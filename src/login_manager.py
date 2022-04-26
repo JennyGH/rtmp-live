@@ -61,7 +61,7 @@ def get_csrf_token():
 
         csrf_token = obj['csrf_token']
 
-        logger.log_debug(f'csrf_token: {csrf_token}')
+        # logger.log_debug(f'csrf_token: {csrf_token}')
 
         return csrf_token
 
@@ -91,7 +91,7 @@ def get_cookies():
 
         cookies = obj['cookies']
 
-        logger.log_debug(f'cookies: {cookies}')
+        # logger.log_debug(f'cookies: {cookies}')
 
         return cookies
 
