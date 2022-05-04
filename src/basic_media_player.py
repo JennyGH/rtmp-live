@@ -9,7 +9,7 @@ import logger
 import last_play_record_manager
 
 
-def _get_seconds_from_ss(val):
+def _get_seconds_from_time_string(val):
     if '' == val:
         return 0
     splited = val.split(':')
@@ -58,9 +58,13 @@ class basic_media_player(object):
         start_time = last_play_record_manager.get_start_time()
         if '00:00:00' == start_time and '' != play_option['start_time']:
             start_time = play_option['start_time']
-        total_seconds = _get_seconds_from_ss(start_time)
+        total_seconds = _get_seconds_from_time_string(start_time)
         end_time = play_option['end_time']
         if '' != end_time:
+            start_seconds = _get_seconds_from_time_string(start_time)
+            end_seconds = _get_seconds_from_time_string(end_time)
+            if start_seconds > end_seconds:
+                return
             end_time = f'-to {end_time}'
         while True:
             ss = "-ss " + start_time
